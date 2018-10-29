@@ -38,12 +38,7 @@ using System.IO;
 
 namespace Client_MVP
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
-    {
-        // struct for the door's location and use for floor name
+    // struct for the door's location and use for floor name
         public struct door_struct
         {
             public string name; //Door_1
@@ -59,38 +54,87 @@ namespace Client_MVP
 
         public struct floor_struct
         {
-            public string og_flr_name;
+            public string og_flr_name; // original name
 
-            public int floor_cnt;
-
-            public double floor_num;
+            public int floor_num; // floor number
 
             // floor name
-            public string name;
+            public string name; // display name
 
             // Floor attributes
             public string floor_image; // Exclusively for floor table, get the path to the downloaded image.
             
+            public int door_ID; // door ID to know which doors in the door table that are relevent
         }
 
+        public class Flr_Dr
+        {
+            public floor_struct st_floor;
+            public List<door_struct> arr_doors = new List<door_struct>();
+
+            public Flr_Dr()
+            {
+                arr_doors = new List<door_struct>();
+            }
+
+            // <Getters/Setters>
+            // Get display name
+            public string getDisplayName()
+            {
+                return st_floor.name;
+            }
+
+            public string getFlrName()
+            {
+                return st_floor.og_flr_name;
+            }
+
+            // Set floor_struct
+            public void setFloor_st(string floor_name, int floor_number, string display_name, string img_dir, int doorID)
+            {
+                st_floor = new floor_struct() { og_flr_name = floor_name, floor_num = floor_number, name = display_name, floor_image = img_dir, door_ID = doorID };
+            }
+
+            public int getDoorID()
+            {
+                return st_floor.door_ID;
+            }
+
+            // </Getters/Setters>
+
+            // <List modify>
+            // Create door_struct and Add to List
+            public void addDoor(string drName, double[] dr_margin, string drIP)
+            {
+                door_struct curr_door = new door_struct() { name = drName, door_margin = dr_margin, door_IP = drIP};
+                arr_doors.Add(curr_door);
+            }
+
+            // </List modify>
+        }
+
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
         public struct button_struct
         {
             public Button btn_door;
             public string IP_door;
         }
 
+        // Used to store a class which contains the floor and a List of the doors on that floor.
+        public List<Flr_Dr> flr_dr_class_lst = new List<Flr_Dr>();
+
         // ordered list for the floor structs, 0 as the lowest floor
-        private List<floor_struct> arr_floor = new List<floor_struct>();
+        //private List<floor_struct> arr_floor = new List<floor_struct>();
         
         // pure string array to set the combobox items
         private List<string> arr_flr_name = new List<string>();       
 
-        // number of floors
-        private static int num_floors;
-        private string curr_floor;
-
         // Jagged array (array of arrays). Each index represents the floor number and the array it contains is the doors on that floor
-        private List<List<door_struct>> jagged_doors = new List<List<door_struct>>();
+        //private List<List<door_struct>> jagged_doors = new List<List<door_struct>>();
         //private door_struct[][] jagged_doors; 
         /*
          * int[][] jaggedArray = new int[3][];
@@ -116,14 +160,12 @@ namespace Client_MVP
         private SqlConnection DBcnn;
 
         // SQL command
-        SqlCommand command; // NOTE: Can't have nested SqlCommands open.
-        
+        SqlCommand command; // NOTE: Can't have nested SqlCommands open.        
+        private string flr_table = "floor_collection_0";
+        private string dr_table = "door_collection_0";
 
         // DB recent error message
         private string DB_error = "";
-
-        // store clicked door
-        private button_struct current_clicked_door;
 
         // directory to save images
         private string folder = "\\images";
@@ -262,15 +304,16 @@ namespace Client_MVP
         // fill arr_floor ordered from lowest floor to highest and also filling the jagged_door array with the doors on the specific floor.
         private void DB_pull_floors()
         {
-            arr_floor = new List<floor_struct>();
 
-            String select_floor = "SELECT * FROM floor_collection_0";
-            // May have DB code auto order based on column "floor order", still check
+            // cannot parameterize table name
+            String select_floor = "SELECT * FROM " + flr_table + ";";
+            // May have DB floors ordered based on column "floor order", but still check
 
             // count number of rows
             int floor_rows = 0;
             using (SqlCommand cmd = new SqlCommand(select_floor, DBcnn))
             {
+                cmd.Parameters.Add("@floor_table", System.Data.SqlDbType.VarChar).Value = flr_table;
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     if (reader != null)
@@ -286,18 +329,16 @@ namespace Client_MVP
             } // command disposed here
             //MessageBox.Show("1. floors looped: " + floor_rows.ToString());
 
-            int floor_count = 0;
-            double floor_number = 0;
+            int floor_count = 0;            
             
             // Get the table values
-            // CHANGE FORMAT OF OUTPUT WHEN TABLE CREATED. 
             while (floor_count < floor_rows) // while true
             {
                 
-                floor_struct curr_floor;
                 // need new instance of reader to start at first row
                 using (SqlCommand cmd = new SqlCommand(select_floor, DBcnn))
                 {
+                    
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader != null)
@@ -306,28 +347,30 @@ namespace Client_MVP
                             {
                                 //MessageBox.Show("looking: " + (double)reader.GetDecimal(2));
                                 // Parent Table columns, Floor Table
-                                // Floor ID | Name | Floor order | Image Path | ;; FLOOR ORDERING MAY BECOME THE PRIM KEY ;; if same floor 1.0, 1.1, 1.2 etc
+                                // Floor ID | Name | Floor order | Image Path | DoorID
                                 // add in order, just in case out of order
                                 // Admin app will sort  DB after finalizing, so this is just to make sure
-                                if ((double)reader.GetDecimal(2) == floor_number)
+                                if ((int)reader.GetValue(2) == floor_count)
                                 {
+                                    // Create class object
+                                    Flr_Dr new_flr = new Flr_Dr();
+
                                     string floor_name = (reader.GetValue(1)).ToString();
-                                    string flr_numbered = floor_number + ". " + floor_name;
+                                    string flr_numbered = floor_count + ". " + floor_name; // display name
+                                    string img_dir = folder + floor_name + ".jpg";                                    
+                                    int doorID = ((int)reader.GetValue(4));
+                                    
+                                    // create floor struct in new_flr
+                                    new_flr.setFloor_st(floor_name, floor_count, flr_numbered, img_dir, doorID);
 
-                                    string img_dir = folder + floor_name + ".jpg";
-                                    //MessageBox.Show(flr_numbered);
-
-                                    curr_floor = new floor_struct() {og_flr_name = floor_name, floor_cnt = floor_count, floor_num = floor_number, name = flr_numbered, floor_image = img_dir };
-
-                                    // fill struct array
-                                    arr_floor.Add(curr_floor);
-
-                                    floor_count++;
-                                    floor_number = floor_number + 0.1;  // essentially 10 floor plans per floor. May need to change for 100. + 0.01
-
-                                    break;
+                                    // Add new_flr to class list
+                                    flr_dr_class_lst.Add(new_flr);
+                                    
+                                    // Don't break, may be more floorplans for the same floor. Floors with the same FloorOrder value
                                 }
                             }
+                            // 
+                            floor_count++;
                         }
                     } // reader closed and disposed up here
 
@@ -338,26 +381,26 @@ namespace Client_MVP
 
             //MessageBox.Show("Last loop " +floor_number.ToString());
 
-            foreach (floor_struct flr in arr_floor)
+            foreach (Flr_Dr flr in flr_dr_class_lst)
             {
-                // from the floor key, fill the door array with all the doors this floor containts
-                // CHANGE WHEN PRIMARy KEY IS CHOSEN. EITHER FLOOR ID OR FLOOR ORDER NUMBER (MAY NOT HAVE ONE
-                fill_door_arr(flr.floor_cnt, flr.floor_num);
+                
+                // Fill doorLists based on DoorID from floor_struct
+                int pull_dr_ID = flr.getDoorID();
+                fill_door_arr(flr, pull_dr_ID);
             }
             
         }
 
         // fill the door array for the specified floor
         // Door table is a child of floor table and the foreign key is Floor group ID
-        private void fill_door_arr(int floor_count, double floor_number)
+        private void fill_door_arr(Flr_Dr cur_flr, int IN_door_id)
         {
-            // add a floor to the jagged array 
-            jagged_doors.Add(new List<door_struct>()); // THIS IS REPLACING MY LIST?
 
-            String select_door = "SELECT * FROM door_collection_0";            
+            String select_door = "SELECT * FROM " + dr_table + ";";            
 
             using (SqlCommand cmd1 = new SqlCommand(select_door, DBcnn))
             {
+                
                 using (SqlDataReader reader1 = cmd1.ExecuteReader())
                 {
                     if (reader1 != null)
@@ -367,7 +410,7 @@ namespace Client_MVP
 
                             // Door table
                             // Door ID | Door Name | Floor order (Foreign key) | Margin Left | Margin Top | Margin Right | Margin Bottom | Door IP ;; if same floor 1.0, 1.1, 1.2 etc
-                            if ((double)reader1.GetDecimal(2) == floor_number)
+                            if ((int)reader1.GetValue(2) == IN_door_id)
                             {
                                 double[] door_margin_curr = new double[4]; // Must create new instance of this, so during the list.add it does not overwrite the previous value
 
@@ -377,12 +420,11 @@ namespace Client_MVP
                                 door_margin_curr[2] = (double)reader1.GetDecimal(5);
                                 door_margin_curr[3] = (double)reader1.GetDecimal(6);
 
-                                door_struct curr_door = new door_struct() { name = (string)reader1.GetValue(1), door_margin = door_margin_curr, door_IP = (string)reader1.GetValue(7) };
-                                
-                                // fill door array for the current floor
-                                jagged_doors[floor_count].Add(curr_door);   // THis add is overwriting the first entry aswell as appending
-                                
-                                
+                                string dr_name = (string)reader1.GetValue(1);
+                                string dr_IP = (string)reader1.GetValue(7);
+
+                                // create and add door to door list for this floor
+                                cur_flr.addDoor(dr_name, door_margin_curr,dr_IP);                                
                             }
                         }
                     }
@@ -526,9 +568,9 @@ namespace Client_MVP
             arr_flr_name = new List<string>();
 
             // fill an array with only the floor name, assuming already ordered from lowest to highest level
-            foreach (floor_struct flr in arr_floor)
+            foreach (Flr_Dr flr in flr_dr_class_lst)
             {
-                arr_flr_name.Add(flr.name);
+                arr_flr_name.Add(flr.getDisplayName());
             }
 
             // set combo box to the floor array
@@ -539,9 +581,9 @@ namespace Client_MVP
             Dispatcher.Invoke(() =>
                 {
                     // floor name at top
-                    lbl_floor_name.Text = arr_floor[0].name;
+                    lbl_floor_name.Text = flr_dr_class_lst[0].getDisplayName();
 
-                    string open_door_path = current_dir + folder + "\\" + arr_floor[0].og_flr_name + ".jpg";
+                    string open_door_path = current_dir + folder + "\\" + flr_dr_class_lst[0].getFlrName() + ".jpg";
                     try
                     {
                         open_door_path = System.IO.Path.GetFullPath(open_door_path);
@@ -576,17 +618,6 @@ namespace Client_MVP
             time_door_open = 3000;
         }
 
-        public void set_num_floors(int in_num_floors)
-        {
-            // this number can come from database entries in the number of floors
-            num_floors = in_num_floors;
-        }
-
-        public int get_num_floors()
-        {
-            return num_floors;
-        }
-
         // when a combobox item is selected
         private void cmb_floor_list_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -599,12 +630,12 @@ namespace Client_MVP
             Dispatcher.Invoke(() =>
                 {
                     // change title of floor
-                    lbl_floor_name.Text = arr_floor[floor_picked].name;
+                    lbl_floor_name.Text = flr_dr_class_lst[floor_picked].getDisplayName();
 
                     // Change the image
                     // Set the images associated with each floor in the combo box
 
-                    string open_door_path = current_dir + folder + "\\" + arr_floor[floor_picked].og_flr_name + ".jpg";
+                    string open_door_path = current_dir + folder + "\\" + flr_dr_class_lst[floor_picked].getFlrName() + ".jpg";
                     //string open_door_path = arr_floor[floor_picked].floor_image;
                     try
                     {
@@ -670,7 +701,7 @@ namespace Client_MVP
             //Button[] arr_button = new Button[] {btn0, btn1 };
             int i = 0;
             // create the specified number of doors for the current floor
-            foreach (door_struct door_creating in jagged_doors[floor_selected])
+            foreach (door_struct door_creating in flr_dr_class_lst[floor_selected].arr_doors)
             {
 
                 string btn_name = "btn_Door_";
