@@ -1,0 +1,13 @@
+c:\users\jonathan\documents\visual studio 2013\Projects\InputImagesToSSMS\InputImagesToSSMS\bin\Debug\InputImagesToSSMS.exe.config
+c:\users\jonathan\documents\visual studio 2013\Projects\InputImagesToSSMS\InputImagesToSSMS\obj\Debug\InputImagesToSSMS.csprojResolveAssemblyReference.cache
+c:\users\jonathan\documents\visual studio 2013\Projects\InputImagesToSSMS\InputImagesToSSMS\obj\Debug\MainWindow.baml
+c:\users\jonathan\documents\visual studio 2013\Projects\InputImagesToSSMS\InputImagesToSSMS\obj\Debug\MainWindow.g.cs
+c:\users\jonathan\documents\visual studio 2013\Projects\InputImagesToSSMS\InputImagesToSSMS\obj\Debug\App.g.cs
+c:\users\jonathan\documents\visual studio 2013\Projects\InputImagesToSSMS\InputImagesToSSMS\obj\Debug\InputImagesToSSMS_MarkupCompile.cache
+c:\users\jonathan\documents\visual studio 2013\Projects\InputImagesToSSMS\InputImagesToSSMS\obj\Debug\InputImagesToSSMS.g.resources
+c:\users\jonathan\documents\visual studio 2013\Projects\InputImagesToSSMS\InputImagesToSSMS\obj\Debug\InputImagesToSSMS.Properties.Resources.resources
+c:\users\jonathan\documents\visual studio 2013\Projects\InputImagesToSSMS\InputImagesToSSMS\obj\Debug\InputImagesToSSMS.csproj.GenerateResource.Cache
+c:\users\jonathan\documents\visual studio 2013\Projects\InputImagesToSSMS\InputImagesToSSMS\bin\Debug\InputImagesToSSMS.exe
+c:\users\jonathan\documents\visual studio 2013\Projects\InputImagesToSSMS\InputImagesToSSMS\bin\Debug\InputImagesToSSMS.pdb
+c:\users\jonathan\documents\visual studio 2013\Projects\InputImagesToSSMS\InputImagesToSSMS\obj\Debug\InputImagesToSSMS.exe
+c:\users\jonathan\documents\visual studio 2013\Projects\InputImagesToSSMS\InputImagesToSSMS\obj\Debug\InputImagesToSSMS.pdb
