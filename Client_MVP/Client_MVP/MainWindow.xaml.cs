@@ -67,10 +67,18 @@ namespace Client_MVP
             public int door_ID; // door ID to know which doors in the door table that are relevent
         }
 
+        public struct button_struct
+        {
+            public Button btn_door;
+            public string IP_door;
+        }
+        // UNDO TILL HERE
+
         public class Flr_Dr
         {
             public floor_struct st_floor;
             public List<door_struct> arr_doors = new List<door_struct>();
+            public List<button_struct> arr_btn = new List<button_struct>(); 
 
             public Flr_Dr()
             {
@@ -110,6 +118,11 @@ namespace Client_MVP
                 arr_doors.Add(curr_door);
             }
 
+            public void addBtn(Button btn, String drIP)
+            {
+                button_struct curr_btn = new button_struct() { btn_door = btn, IP_door = drIP };
+                arr_btn.Add(curr_btn);
+            }
             // </List modify>
         }
 
@@ -118,11 +131,6 @@ namespace Client_MVP
     /// </summary>
     public partial class MainWindow : Window
     {
-        public struct button_struct
-        {
-            public Button btn_door;
-            public string IP_door;
-        }
 
         // Used to store a class which contains the floor and a List of the doors on that floor.
         public List<Flr_Dr> flr_dr_class_lst = new List<Flr_Dr>();
@@ -171,6 +179,8 @@ namespace Client_MVP
         private string folder = "\\images";
         private string current_dir = System.Environment.CurrentDirectory;
 
+        private int prev_sel = 0;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -193,7 +203,10 @@ namespace Client_MVP
                 dl_str_floor_img();
                 
                 // define the 2d array for the floors and its doors
-                DB_pull_floors();   
+                DB_pull_floors();              
+
+                // convert doors into buttons
+                cr_btns();
 
                 // Fill combo box with the floors
                 set_combobox_items();
@@ -576,6 +589,7 @@ namespace Client_MVP
             // set combo box to the floor array
             cmb_floor_list.ItemsSource = arr_flr_name;
             cmb_floor_list.SelectedIndex = 0;
+            prev_sel = 0;
             
             // Initial floor plan loaded into scrollviewer
             Dispatcher.Invoke(() =>
@@ -607,7 +621,7 @@ namespace Client_MVP
                 
                 }
             );
-            clear_prev_doors(); // Clearing before adding initial doors helps it clear when another combo box item is selected
+            clear_prev_doors(prev_sel); // Clearing before adding initial doors helps it clear when another combo box item is selected
             // place doors on the floor plan
             place_curr_doors(0);
         }
@@ -661,18 +675,113 @@ namespace Client_MVP
 
 
                     // Also need to clear previous doors on the floorplan
-                    clear_prev_doors();
+                    clear_prev_doors(prev_sel);
 
                     // After cleared
                     // Place doors for current floor
                     place_curr_doors(floor_picked);
+                    prev_sel = floor_picked;
                 }
             );
         }
 
-        private void clear_prev_doors()
+        private void cr_btns()
         {
-            foreach (button_struct btn in placed_doors)
+            // Load locked door image
+            string locked_door_image = current_dir + folder + "\\closed_door.jpg";
+
+            foreach (Flr_Dr flr in flr_dr_class_lst)
+            {
+                int i = 0;
+                foreach (door_struct dr in flr.arr_doors)
+                {
+                    // create button
+                    string btn_name = "btn_Door_";
+                    string grd_name = "grd_Door_";
+                    string img_name = "img_Door_";
+
+                    // create personal button grid
+                    grd_name = grd_name + i.ToString();
+                    Grid door_grid = new Grid();
+                    door_grid.Name = grd_name + i.ToString();
+
+                    // set the margins for the grid
+                    Thickness grid_margin = door_grid.Margin;
+                    grid_margin.Left = 0;
+                    grid_margin.Top = 0;
+                    grid_margin.Right = 0;
+                    grid_margin.Bottom = 0;
+                    door_grid.Margin = grid_margin;
+                    //
+
+                    // name image, have to re-create object each loop to be able to add as a child
+                    Uri imageUri = new Uri(locked_door_image, UriKind.Absolute);   // do relative later
+                    BitmapImage imageBitmap = new BitmapImage(imageUri);
+                    Image my_doorImage = new Image();
+                    my_doorImage.Source = imageBitmap;
+                    my_doorImage.Height = 50;
+                    my_doorImage.Width = 50;
+                    Thickness img_margin = my_doorImage.Margin;
+                    img_margin.Left = 0;
+                    img_margin.Top = 0;
+                    img_margin.Right = 0;
+                    img_margin.Bottom = 0;
+                    my_doorImage.Margin = img_margin;
+
+                    img_name = img_name + i.ToString();
+                    my_doorImage.Name = img_name;
+                    //
+
+                    btn_name = btn_name + i.ToString();
+
+                    // set button attributes                
+                    Button btn_new = new Button();
+                    btn_new.Name = btn_name;
+
+                    //HorizontalAlignment="Left" Margin="215,202,0,0" VerticalAlignment="Top" Height ="50" Width="50" Click="btn_Door_1_Click" Background="Red" FontSize="14" Foreground="White"
+                    // Set default attributes
+                    btn_new.Height = 50;
+                    btn_new.Width = 50;
+                    btn_new.Background = Brushes.Red;
+                    btn_new.FontSize = 14;
+                    btn_new.Foreground = Brushes.White;
+                    btn_new.HorizontalAlignment = HorizontalAlignment.Left;
+                    btn_new.VerticalAlignment = VerticalAlignment.Top;
+
+                    // set the margins for the button
+                    Thickness door_margin = btn_new.Margin;
+                    door_margin.Left = dr.door_margin[0];
+                    door_margin.Top = dr.door_margin[1];
+                    door_margin.Right = dr.door_margin[2];
+                    door_margin.Bottom = dr.door_margin[3];
+                    btn_new.Margin = door_margin;
+
+                    // function for button click
+                    btn_new.Click += generic_button_click;
+
+                    // Set grid as child of the button
+                    btn_new.Content = door_grid;
+
+                    // Set Image as the child to the grid
+                    door_grid.Children.Add(my_doorImage);
+
+                    // Place doors within scrollviewer grid, only placing last read button
+                    //                grd_ScrollV.Children.Add(btn_new);
+
+                    //button_struct curr_dr = new button_struct() { btn_door = btn_new, IP_door = dr.door_IP };
+
+                    // Add to List
+                    //placed_doors.Add(curr_dr);
+                    flr.addBtn(btn_new, dr.door_IP);
+
+                    i++;
+                }
+            }
+        }
+
+        private void clear_prev_doors(int prev)
+        {
+            foreach (button_struct btn in flr_dr_class_lst[prev].arr_btn)
             {
                 
                 grd_ScrollV.Children.Remove(btn.btn_door);
@@ -682,138 +791,12 @@ namespace Client_MVP
 
         private void place_curr_doors(int floor_selected)
         {
-            // initialize empty list
-            placed_doors = new List<button_struct>();
 
-            // Load locked door image
-            string locked_door_image = current_dir + folder + "\\closed_door.jpg";
-
-            // Test margin stored correctly? NO
-            //foreach (door_struct dd in jagged_doors[floor_selected])
-            //{
-              //  MessageBox.Show(floor_selected.ToString() + " "+  dd.door_margin[0].ToString());
-            //}
-
-            //
-            //Button btn0 = new Button();
-            //Button btn1 = new Button();
-
-            //Button[] arr_button = new Button[] {btn0, btn1 };
-            int i = 0;
-            // create the specified number of doors for the current floor
-            foreach (door_struct door_creating in flr_dr_class_lst[floor_selected].arr_doors)
-            {
-
-                string btn_name = "btn_Door_";
-                string grd_name = "grd_Door_";
-                string img_name = "img_Door_";
-
-                // create personal button grid
-                grd_name = grd_name + i.ToString();
-                Grid door_grid = new Grid();
-                door_grid.Name = grd_name + i.ToString();
-
-                // set the margins for the grid
-                Thickness grid_margin = door_grid.Margin;
-                grid_margin.Left = 0;
-                grid_margin.Top = 0;
-                grid_margin.Right = 0;
-                grid_margin.Bottom = 0;
-                door_grid.Margin = grid_margin;
-                //
-
-                // name image, have to re-create object each loop to be able to add as a child
-                Uri imageUri = new Uri(locked_door_image, UriKind.Absolute);   // do relative later
-                BitmapImage imageBitmap = new BitmapImage(imageUri);
-                Image my_doorImage = new Image();
-                my_doorImage.Source = imageBitmap;
-                my_doorImage.Height = 50;
-                my_doorImage.Width = 50;
-                Thickness img_margin = my_doorImage.Margin;
-                img_margin.Left = 0;
-                img_margin.Top = 0;
-                img_margin.Right = 0;
-                img_margin.Bottom = 0;
-                my_doorImage.Margin = img_margin;
-
-                img_name = img_name + i.ToString();
-                my_doorImage.Name = img_name;
-                //
-
-                btn_name = btn_name + i.ToString();
-
-                // test
-                /*
-                arr_button[i].Name = btn_name;
-                arr_button[i].Height = 50;
-                arr_button[i].Width = 50;
-                arr_button[i].Background = Brushes.Red;
-                arr_button[i].FontSize = 14;
-                arr_button[i].Foreground = Brushes.White;
-                arr_button[i].HorizontalAlignment = HorizontalAlignment.Left;
-                arr_button[i].VerticalAlignment = VerticalAlignment.Top;
-
-                Thickness door_margin = arr_button[i].Margin;
-                door_margin.Left = door_creating.door_margin[0];
-                door_margin.Top = door_creating.door_margin[1];
-                door_margin.Right = door_creating.door_margin[2];
-                door_margin.Bottom = door_creating.door_margin[3];
-                arr_button[i].Margin = door_margin;
-
-                arr_button[i].Click += generic_button_click;
-
-                // Set grid as child of the button
-                arr_button[i].Content = door_grid;
-
-                button_struct btn_cr = new button_struct() { btn_door = arr_button[i], IP_door = door_creating.door_IP };
-                 */
-                // test end
-
-                // set button attributes                
-                Button btn_new = new Button();
-                btn_new.Name = btn_name;
-
-                //HorizontalAlignment="Left" Margin="215,202,0,0" VerticalAlignment="Top" Height ="50" Width="50" Click="btn_Door_1_Click" Background="Red" FontSize="14" Foreground="White"
-                // Set default attributes
-                btn_new.Height = 50;
-                btn_new.Width = 50;
-                btn_new.Background = Brushes.Red;
-                btn_new.FontSize = 14;
-                btn_new.Foreground = Brushes.White;
-                btn_new.HorizontalAlignment = HorizontalAlignment.Left;
-                btn_new.VerticalAlignment = VerticalAlignment.Top;
-
-                // set the margins for the button
-                Thickness door_margin = btn_new.Margin;
-                door_margin.Left = door_creating.door_margin[0];
-                door_margin.Top = door_creating.door_margin[1];
-                door_margin.Right = door_creating.door_margin[2];
-                door_margin.Bottom = door_creating.door_margin[3];
-                btn_new.Margin = door_margin;
-
-                // function for button click
-                btn_new.Click += generic_button_click;
-
-                // Set grid as child of the button
-                btn_new.Content = door_grid;
-
-
-                // Set Image as the child to the grid
-                door_grid.Children.Add(my_doorImage);
-
-                // Place doors within scrollviewer grid, only placing last read button
-                grd_ScrollV.Children.Add(btn_new);
-
-                // fill button_struct
-                button_struct btn_cr = new button_struct() { btn_door = btn_new, IP_door = door_creating.door_IP };
-
-
-                // fill array of buttons
-                placed_doors.Add(btn_cr);
-
-                i++;
+            foreach (button_struct btn in flr_dr_class_lst[floor_selected].arr_btn)
+            {// Place doors within scrollviewer grid, only placing last read button
+                
+                grd_ScrollV.Children.Add(btn.btn_door);
             }
-
         }
 
         // On button click, send the udp message and change colour
@@ -825,7 +808,7 @@ namespace Client_MVP
             Button button_now = new Button();
 
             // search button_struct placed_doors() List for the door and get its IP
-            foreach (button_struct btn in placed_doors)
+            foreach (button_struct btn in flr_dr_class_lst[prev_sel].arr_btn)
             {
                 //MessageBox.Show(btn.IP_door);
                 string curr_name = btn.btn_door.Name;
