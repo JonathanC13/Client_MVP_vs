@@ -1,0 +1,25 @@
+﻿<Window x:Class="Client_MVP.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+        <Grid x:Name="grd_floor_nae" HorizontalAlignment="Center" Height="25" VerticalAlignment="Top">
+            <TextBox x:Name="lbl_floor_name" BorderThickness="0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" Height="25" TextWrapping="Wrap" Text="" VerticalAlignment="Top" FontSize="14" />
+        </Grid>
+        <Grid HorizontalAlignment="Center" Margin="0,25,0,25" VerticalAlignment="Top">
+            <ScrollViewer HorizontalAlignment="Center" VerticalAlignment="Top" HorizontalScrollBarVisibility="Visible">
+                <Grid x:Name="grd_ScrollV" HorizontalAlignment="Center" VerticalAlignment="Top" >
+                    <Image x:Name="img_floor"  Stretch="None"/>
+                    
+                    
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+        <Grid HorizontalAlignment="Center" Height="25" Margin="0, 0, 0 ,0" VerticalAlignment="Bottom" Width="400">
+            <Button x:Name="btn_lvl_down" Content="Level Down" FontSize="14" HorizontalAlignment="Center" Margin="0, 0 , -105, 0" VerticalAlignment="Top" Height ="25" Width="75"/>
+            <Button x:Name="btn_lvl_up" Content="Level Up" FontSize="14" HorizontalAlignment="Center" Margin="0, 0 , -260, 0" VerticalAlignment="Top" Height ="25" Width="75"/>
+            <ComboBox x:Name="cmb_floor_list"  HorizontalAlignment="Center" Margin="0,0,155,0" VerticalAlignment="Top" Width="120" IsReadOnly="True" FontSize="14" SelectionChanged="cmb_floor_list_SelectionChanged"/>
+
+        </Grid>
+    </Grid>
+</Window>

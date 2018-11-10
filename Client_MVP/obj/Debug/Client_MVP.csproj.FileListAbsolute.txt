@@ -1,0 +1,13 @@
+c:\users\jonathan\documents\visual studio 2013\Projects\Client_MVP\Client_MVP\bin\Debug\Client_MVP.exe.config
+c:\users\jonathan\documents\visual studio 2013\Projects\Client_MVP\Client_MVP\bin\Debug\Client_MVP.exe
+c:\users\jonathan\documents\visual studio 2013\Projects\Client_MVP\Client_MVP\bin\Debug\Client_MVP.pdb
+c:\users\jonathan\documents\visual studio 2013\Projects\Client_MVP\Client_MVP\obj\Debug\Client_MVP.csprojResolveAssemblyReference.cache
+c:\users\jonathan\documents\visual studio 2013\Projects\Client_MVP\Client_MVP\obj\Debug\MainWindow.baml
+c:\users\jonathan\documents\visual studio 2013\Projects\Client_MVP\Client_MVP\obj\Debug\MainWindow.g.cs
+c:\users\jonathan\documents\visual studio 2013\Projects\Client_MVP\Client_MVP\obj\Debug\App.g.cs
+c:\users\jonathan\documents\visual studio 2013\Projects\Client_MVP\Client_MVP\obj\Debug\Client_MVP_MarkupCompile.cache
+c:\users\jonathan\documents\visual studio 2013\Projects\Client_MVP\Client_MVP\obj\Debug\Client_MVP.g.resources
+c:\users\jonathan\documents\visual studio 2013\Projects\Client_MVP\Client_MVP\obj\Debug\Client_MVP.Properties.Resources.resources
+c:\users\jonathan\documents\visual studio 2013\Projects\Client_MVP\Client_MVP\obj\Debug\Client_MVP.csproj.GenerateResource.Cache
+c:\users\jonathan\documents\visual studio 2013\Projects\Client_MVP\Client_MVP\obj\Debug\Client_MVP.exe
+c:\users\jonathan\documents\visual studio 2013\Projects\Client_MVP\Client_MVP\obj\Debug\Client_MVP.pdb
